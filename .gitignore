@@ -16,5 +16,3 @@ docs/
 # output datafiles
 *.csv
 *.json
-.gitignore
-
