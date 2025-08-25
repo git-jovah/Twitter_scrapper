@@ -1,0 +1,19 @@
+#env variable files
+.env
+.env.*
+
+# virtual env files
+myenv/
+env/
+.myenv/
+.env/
+
+.vscode/
+
+__pycache__/
+docs/
+
+# output datafiles
+*.csv
+*.json
+
