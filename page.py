@@ -38,13 +38,14 @@ def render_page():
                                         st.button("upload to Database",on_click=begin_upload,use_container_width=True,help="upload the data to the monogoDB database")
                                     with c2:
                                         if csv_data:
-                                            st.download_button("download .CSV",data=csv_data,file_name="tweets_data.csv",mime="text/csv",key="csv_download_button"+str(np.random.rand()),use_container_width=True,help="download csv file")
+                                            st.download_button(f"Download {user_inp[1:]}.CSV",data=csv_data,file_name=f"{user_inp[1:]}.csv",mime="text/csv",key="csv_download_button"+str(np.random.rand()),use_container_width=True,help="download csv file")
                                             # a = [[print_text(username=i[0],tweet_text=i[2],like=i[3],retweet=i[4],reply=i[5],date=i[6]) for i in list(val.values())] for val in st.session_state["main_tweets"]]
+
                                         else:
                                             st.write("no csv data found!")
                                     with c3:
                                         if json_data:
-                                            st.download_button("download .JSON",data=json_data,file_name="tweets_data.json",mime="application/json",key="json_download_button"+str(np.random.rand()),use_container_width=True,help="download json file")
+                                            st.download_button(f"Download {user_inp[1:]}.JSON",data=json_data,file_name=f"{user_inp[1:]}.json",mime="application/json",key="json_download_button"+str(np.random.rand()),use_container_width=True,help="download json file")
                                         else:
                                             st.write("No json data found!")
                                 if est > (end-start): st.markdown(f"*Execution time* : :green[{end-start:.2f}] *seconds*")

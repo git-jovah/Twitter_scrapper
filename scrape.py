@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
 import datetime as dt
@@ -12,10 +14,11 @@ import pandas as pd
 
 MAIN_TWEETS = []
 
-
 def driver_setup():
+    global wait
     # Setup Chrome (auto installs driver)
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    wait = WebDriverWait(driver,5)
     return driver
 
 def print_text(username,tweet_text,like,retweet,reply,date):
@@ -77,32 +80,26 @@ def login_set(driver,url):
         user_name = os.getenv("TWITTER_USERNAME")
         user_pass = os.getenv("TWITTER_PASSKEY")
         mail = os.getenv("MAIL")
+
         driver.get(url)
-        st.write("login url found")
-        time.sleep(5)
-        user_name_input = driver.find_element(By.XPATH,"//input[@name='text']")
+
+        user_name_input = wait.until(EC.visibility_of_element_located((By.XPATH,"//input[@name='text']")))
         user_name_input.send_keys(user_name)
-        time.sleep(1)
         user_name_input.send_keys("\n")
-        time.sleep(1)
         try:
             verify = driver.find_element(By.XPATH,"//input[@name='text']")
             if verify:
                 st.markdown("asking verification")
                 verify.send_keys(mail)
-                time.sleep(2)
-                ver_next_button = driver.find_element(By.XPATH,"//button[@data-testid='ocfEnterTextNextButton']")
+                ver_next_button = wait.until(EC.visibility_of_element_located((By.XPATH,"//button[@data-testid='ocfEnterTextNextButton']")))
                 ver_next_button.click()
-                time.sleep(2)
-                user_password = driver.find_element(By.XPATH,"//input[@name='password']")
+                user_password = wait.until(EC.visibility_of_element_located((By.XPATH,"//input[@name='password']")))
                 user_password.send_keys(user_pass)
-                time.sleep(2)
                 driver.find_element(By.XPATH,"//button[@data-testid='LoginForm_Login_Button']").click()
                 return "login success"
         except:
-            user_password = driver.find_element(By.XPATH,"//input[@name='password']")
+            user_password = wait.until(EC.visibility_of_element_located((By.XPATH,"//input[@name='password']")))
             user_password.send_keys(user_pass)
-            time.sleep(2)
             driver.find_element(By.XPATH,"//button[@data-testid='LoginForm_Login_Button']").click()
             return "login success"
     except Exception as e:
@@ -113,48 +110,45 @@ def login_set(driver,url):
 def user_data_getter(driver,url):
     st.markdown(":green[setting connection...]")
     driver.get(url)
-    time.sleep(5)
+    
     st.markdown(":green[connection found...]")
     try:
-        user_name = driver.find_element(By.XPATH,("//div[@data-testid='UserName']"))
+        user_name = wait.until(EC.visibility_of_element_located((By.XPATH,("//div[@data-testid='UserName']"))))
         user_name = user_name.text
         yield user_name
     except Exception as e:
         yield 0
         st.markdown("USER NAME NOT FOUND...")
-        time.sleep(2)
         st.markdown("scrapping process stopped...")
         print("Error finding user name:", e)
         return False
 
     try:
-        join_date = driver.find_element(By.XPATH,"//div[@data-testid='UserProfileHeader_Items']")
+        join_date = wait.until(EC.visibility_of_element_located((By.XPATH,"//div[@data-testid='UserProfileHeader_Items']")))
         join_date = join_date.find_element(By.XPATH, ".//span[@data-testid='UserJoinDate']")
         join_date = join_date.text
-        # time.sleep(2)
         yield join_date
     except Exception as e:
         yield 0
         print("Error finding join date:", e)
     
     try:
-        tweet_count = driver.find_element(By.XPATH,"/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div/div[2]/div/div")
+        tweet_count = wait.until(EC.visibility_of_element_located((By.XPATH,"/html/body/div[1]/div/div/div[2]/main/div/div/div/div/div/div[1]/div[1]/div/div/div/div/div/div[2]/div/div")))
         tweet_count = tweet_count.text
-        # time.sleep(2)
         yield tweet_count
     except Exception as e:
         yield 0
         print("Error finding tweet count:", e)
     
     try:
-        followers_link = driver.find_element(By.CSS_SELECTOR, "a[href$='/verified_followers']")
+        followers_link = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "a[href$='/verified_followers']")))
         yield followers_link.text
     except Exception as e:
         yield 0
         print("Error finding followers count:", e)
     
     try:
-        following_count = driver.find_element(By.CSS_SELECTOR,"div[class='css-175oi2r r-1rtiivn']")
+        following_count = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR,"div[class='css-175oi2r r-1rtiivn']")))
         yield following_count.text
     except Exception as e:
         yield 0
@@ -175,16 +169,12 @@ def temp_det(count,tweets):
     return MAIN_TWEETS
 
 def hash_tag_getter(driver,url,count):
-    # div[data-testid="cellInnerDIv"] - tweet container 
-    st.markdown(":green[searching for hash tags...]")
     driver.get(url)
-    time.sleep(5)
-    st.markdown(":green[connection found...]")
     try:
         tweets = {}
         st.write("scrapping started now for getting tweets")
         for _ in range(0,int(count/3)):
-            cont = driver.find_elements(By.CSS_SELECTOR,"[data-testid='cellInnerDiv']")
+            cont = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR,"[data-testid='cellInnerDiv']")))
             for x,ele in enumerate(cont,start=1):
                 handle = ele.find_element(By.CSS_SELECTOR,"[data-testid='User-Name']")
                 if handle:
@@ -215,7 +205,6 @@ def hash_tag_getter(driver,url,count):
         return m_n
     except Exception as e:
         st.markdown("HASH TAG NOT FOUND...")
-        time.sleep(1)
         st.markdown("scrapping process stopped...")
         print("Error finding hash tag:", e)
         return False
@@ -257,19 +246,27 @@ def scrape_it(test,since=dt.datetime.today().date(),until=dt.datetime.today().da
             st.markdown(f"*:gray[follower count ]* **:** {next(data)}")
             st.markdown(f"*:gray[following count]* **:** {next(data)}")
             st.markdown(f"*:gray[scrapping date ]* **:** {dt.date.today()}")
+            driver.quit()
+            return Est_time
 
         except Exception as e:
             print("An error occurred:", e)
     
     else:
         login_set(driver,r"https://x.com/i/flow/login")
-        time.sleep(5)
+        time.sleep(4)
         mn = hash_tag_getter(driver, f"https://x.com/search?q=(%23{test[1:]})%20until%3A{until}%20since%3A{since}&src=typed_query&f=live",count=tweet_range)
         # https://x.com/search?f=top&q=(%23HeavyRains)%20until%3A2020-06-15%20since%3A2020-06-10&src=typed_query
-    
-    time.sleep(3)    #USE WEBDRIVERWAIT METHOD. there are tweets duplicating when given larger length.
-    driver.quit()
-    return mn,Est_time
+
+
+# it stopping if i give the tweet count more than 10
+# it stopping if i give the tweet count more than 10
+# it stopping if i give the tweet count more than 10
+        driver.quit()
+        return mn,Est_time
+    if driver.session_id:
+        driver.quit()
+
 
 if __name__ == "__main__":
     scrape_it()
