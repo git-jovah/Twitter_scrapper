@@ -1,0 +1,12 @@
+How to run the project?
+
+1. create a .env file containing these environment variables:
+    1. MONGO_URL = <-- your bearer token that links to your mongodb server -->
+    2. TWITTER_USERNAME = <-- your twitter handle --> <-- @abcssdf23 -->
+    3. TWITTER_PASSKEY = <-- your twitter password -->
+    4. MAIL = <-- your email linked to your twitter -->
+
+2. install all the modules necessary. you will find the modules list in "requirement.txt".
+
+3. everything inter linked to the page.py file which has the Streamlit GUI code.
+   - using command "streamlit run page.py" in the command line interface will start the application.
